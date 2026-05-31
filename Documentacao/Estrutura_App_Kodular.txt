@@ -7,6 +7,13 @@
 - KIO4_Foreground (Para o Android nao fechar o app em 2 plano)
 - Agora.io Voice (Para transmissao de voz sem atraso)
 
+[ 1.5 COMPONENTES DA TELA DE LOGIN (Screen1) ]
+- TextBox_Email (Campo para e-mail)
+- TextBox_Senha (Campo para senha)
+- Button_Login (Botao "Entrar")
+- Button_Cadastro (Botao "Criar Conta")
+- Firebase_Authentication (Para login com E-mail/Senha)
+
 [ 2. COMPONENTES DA TELA PRINCIPAL (Dashboard) ]
 - TextBox_IDGrupo (Campo para digitar o ID)
 - TextBox_Senha (Campo para a senha do grupo)
@@ -20,6 +27,14 @@
 - Button_Minimizar (Botao "Ativar Modo Flutuante e Minimizar")
 - Firebase_Database (Configurado para o bucket 'status_voz')
 - Extensoes: KIO4_FloatView, KIO4_Foreground, Agora_Voice
+
+[ 4. LOGICA DE BLOCOS - AUTENTICACAO ]
+QUANDO Button_Login.Click:
+  1. Chame Firebase_Authentication.Login(TextBox_Email.Text, TextBox_Senha.Text)
+QUANDO Firebase_Authentication.LoginSuccess:
+  1. Abra a tela Dashboard.
+QUANDO Button_Cadastro.Click:
+  1. Chame Firebase_Authentication.SignUp(TextBox_Email.Text, TextBox_Senha.Text)
 
 [ 4. LOGICA DE BLOCOS - MODO FLUTUANTE ]
 QUANDO Button_Minimizar.Click:
