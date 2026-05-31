@@ -35,11 +35,29 @@
         <button id="btn-register" class="btn" style="width: 100%;">Criar Nova Conta</button>
     </div>
 
+    <!-- ÁREA NORMAL DO SISTEMA (Usuários) -->
+    <div id="normal-view" class="hidden">
+        <div class="header-bar">
+            <h1 style="margin: 0;">Início - Rádio PTT</h1>
+            <button id="btn-logout-normal" class="btn btn-danger">Sair</button>
+        </div>
+        <div class="card" style="text-align: center;">
+            <h2>Opções do Rádio</h2>
+            <button id="btn-criar-grupo" class="btn btn-success">Criar Novo Grupo</button>
+            <button id="btn-entrar-grupo" class="btn btn-success" style="margin-left: 10px;">Entrar em Grupo</button>
+            <p style="color: #aaa; margin-top: 15px; font-size: 13px;">A transmissão de voz ocorre no App Mobile (Kodular).</p>
+        </div>
+        <div id="admin-section" class="card hidden" style="text-align: center; border: 1px solid #7f1d1d;">
+            <h2 style="color: #ff6b6b;">Área Restrita (Administrador)</h2>
+            <button id="btn-go-admin" class="btn btn-danger">Acessar Painel Master</button>
+        </div>
+    </div>
+
     <!-- ÁREA DO DASHBOARD (Oculta por padrão) -->
     <div id="dashboard-view" class="hidden">
         <div class="header-bar">
             <h1 style="margin: 0;">Painel de Moderação Master</h1>
-            <button id="btn-logout" class="btn btn-danger">Sair da Conta</button>
+            <button id="btn-back-normal" class="btn">Voltar ao Início</button>
         </div>
         <div class="card">
             <h2>Auditoria em Tempo Real (Logs)</h2>
@@ -77,6 +95,7 @@
   const logsRef = ref(db, 'auditoria_logs');
 
   const loginView = document.getElementById('login-view');
+  const normalView = document.getElementById('normal-view');
   const dashboardView = document.getElementById('dashboard-view');
   const emailInput = document.getElementById('email-input');
   const passwordInput = document.getElementById('password-input');
@@ -84,9 +103,16 @@
   onAuthStateChanged(auth, (user) => {
     if (user) {
       loginView.classList.add('hidden');
-      dashboardView.classList.remove('hidden');
+      normalView.classList.remove('hidden');
+      dashboardView.classList.add('hidden');
+      if (user.email === 'admin@sistema.com') {
+        document.getElementById('admin-section').classList.remove('hidden');
+      } else {
+        document.getElementById('admin-section').classList.add('hidden');
+      }
     } else {
       loginView.classList.remove('hidden');
+      normalView.classList.add('hidden');
       dashboardView.classList.add('hidden');
     }
   });
@@ -148,7 +174,20 @@
     }
   });
 
-  document.getElementById('btn-logout').addEventListener('click', () => {
+  document.getElementById('btn-go-admin').addEventListener('click', () => {
+    normalView.classList.add('hidden');
+    dashboardView.classList.remove('hidden');
+  });
+
+  document.getElementById('btn-back-normal').addEventListener('click', () => {
+    dashboardView.classList.add('hidden');
+    normalView.classList.remove('hidden');
+  });
+
+  document.getElementById('btn-criar-grupo').addEventListener('click', () => alert('Abra o Aplicativo no celular para criar e transmitir grupos!'));
+  document.getElementById('btn-entrar-grupo').addEventListener('click', () => alert('Abra o Aplicativo no celular para entrar e escutar os rádios!'));
+
+  document.getElementById('btn-logout-normal').addEventListener('click', () => {
     signOut(auth);
   });
 </script>
