@@ -1,0 +1,40 @@
+=========================================================
+       ESTRUTURA DO APLICATIVO KODULAR (PUSH-TO-TALK)
+=========================================================
+
+[ 1. EXTENSOES NECESSARIAS PARA IMPORTAR ]
+- KIO4_FloatView (Para o botao do microfone flutuar na tela)
+- KIO4_Foreground (Para o Android nao fechar o app em 2 plano)
+- Agora.io Voice (Para transmissao de voz sem atraso)
+
+[ 2. COMPONENTES DA TELA PRINCIPAL (Dashboard) ]
+- TextBox_IDGrupo (Campo para digitar o ID)
+- TextBox_Senha (Campo para a senha do grupo)
+- Button_Entrar (Botao para acessar)
+- Button_Criar (Botao para gerar novo grupo)
+- Firebase_Database (Configurado para o bucket 'grupos')
+
+[ 3. COMPONENTES DA TELA DE RADIO (Microfone Flutuante) ]
+- VerticalArrangement_Flutuante (Layout que vai virar a bolha na tela)
+  -- Button_Mic (Botao redondo com icone de microfone, dentro do layout)
+- Button_Minimizar (Botao "Ativar Modo Flutuante e Minimizar")
+- Firebase_Database (Configurado para o bucket 'status_voz')
+- Extensoes: KIO4_FloatView, KIO4_Foreground, Agora_Voice
+
+[ 4. LOGICA DE BLOCOS - MODO FLUTUANTE ]
+QUANDO Button_Minimizar.Click:
+  1. Chame KIO4_Foreground.StartService (Texto: "Radio Ativa")
+  2. Chame KIO4_FloatView.Register(VerticalArrangement_Flutuante)
+  3. Minimize o aplicativo (Manda o app para tras, deixando a bolha)
+
+[ 5. LOGICA DE BLOCOS - PUSH TO TALK ]
+QUANDO Button_Mic.TouchDown (Apertou o microfone):
+  1. Chame Firebase_Database.GetValue (Tag: ID_GRUPO/falando_agora)
+  2. Se o valor estiver vazio, guarde seu Nome/ID no Firebase.
+  3. Chame Agora_Voice.MuteLocalAudioStream(false) - Comeca a falar!
+  4. Mude a cor do VerticalArrangement_Flutuante para VERMELHO.
+
+QUANDO Button_Mic.TouchUp (Soltou o microfone):
+  1. Chame Agora_Voice.MuteLocalAudioStream(true) - Corta o audio!
+  2. Chame Firebase_Database.StoreValue (Tag: ID_GRUPO/falando_agora = VAZIO)
+  3. Mude a cor do VerticalArrangement_Flutuante para VERDE.
