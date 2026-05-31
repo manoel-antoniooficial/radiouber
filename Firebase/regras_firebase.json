@@ -1,0 +1,24 @@
+{
+  "rules": {
+    "usuarios": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "$uid === auth.uid"
+      }
+    },
+    "auditoria_logs": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "grupos": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "status_voz": {
+      "$grupo_id": {
+        ".read": "auth != null",
+        ".write": "root.child('membros_grupos/'+$grupo_id+'/'+auth.uid).val() === true"
+      }
+    }
+  }
+}

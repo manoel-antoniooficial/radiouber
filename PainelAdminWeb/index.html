@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Rádio PTT</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: #e0e0e0; padding: 20px; margin: 0; }
+        .card { background-color: #1e1e1e; padding: 20px; border-radius: 8px; border: 1px solid #333; margin-bottom: 20px; }
+        h1, h2 { font-weight: 400; color: #ffffff; margin-top: 0; }
+        .btn { padding: 10px 16px; background-color: #2c2c2c; color: #ffffff; border: 1px solid #444; border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 14px; }
+        .btn:hover { background-color: #3d3d3d; }
+        .btn-danger { background-color: #7f1d1d; border-color: #991b1b; }
+        .btn-danger:hover { background-color: #991b1b; }
+        .btn-success { background-color: #14532d; border-color: #166534; }
+        .btn-success:hover { background-color: #166534; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; border-bottom: 1px solid #333; text-align: left; }
+        th { color: #aaa; font-weight: 500; }
+        .hidden { display: none !important; }
+        .auth-container { max-width: 400px; margin: 100px auto; background-color: #1e1e1e; padding: 30px; border-radius: 8px; border: 1px solid #333; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #aaa; font-size: 14px; }
+        .form-group input { width: 100%; padding: 12px; box-sizing: border-box; background-color: #121212; border: 1px solid #444; color: white; border-radius: 4px; }
+        .form-group input:focus { border-color: #5cb85c; outline: none; }
+        .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <!-- ÁREA DE LOGIN/CADASTRO -->
+    <div id="login-view" class="auth-container">
+        <h2 style="text-align: center; margin-bottom: 20px;">Acesso Restrito</h2>
+        <div class="form-group"><label>E-mail</label><input type="email" id="email-input" placeholder="admin@sistema.com"></div>
+        <div class="form-group"><label>Senha</label><input type="password" id="password-input" placeholder="******"></div>
+        <button id="btn-login" class="btn btn-success" style="width: 100%; margin-bottom: 10px;">Entrar no Painel</button>
+        <button id="btn-register" class="btn" style="width: 100%;">Criar Nova Conta</button>
+    </div>
+
+    <!-- ÁREA DO DASHBOARD (Oculta por padrão) -->
+    <div id="dashboard-view" class="hidden">
+        <div class="header-bar">
+            <h1 style="margin: 0;">Painel de Moderação Master</h1>
+            <button id="btn-logout" class="btn btn-danger">Sair da Conta</button>
+        </div>
+        <div class="card">
+            <h2>Auditoria em Tempo Real (Logs)</h2>
+            <table id="tabela-logs">
+                <tr><th>Data/Hora</th><th>Usuário</th><th>Ação</th><th>Grupo</th></tr>
+                <tr><td colspan="4">Aguardando conexão Firebase...</td></tr>
+            </table>
+        </div>
+        <div class="card">
+            <h2>Ações Rápidas</h2>
+            <button id="btn-bloquear" class="btn btn-danger">Bloquear Grupo (Emergência)</button>
+            <button id="btn-senha" class="btn btn-success">Alterar Senha do Grupo</button>
+        </div>
+    </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "COLE_SUA_API_KEY_WEB_AQUI",
+    authDomain: "radio-bd833.firebaseapp.com",
+    databaseURL: "https://radio-bd833-default-rtdb.firebaseio.com",
+    projectId: "radio-bd833"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const auth = getAuth(app);
+  const logsRef = ref(db, 'auditoria_logs');
+
+  const loginView = document.getElementById('login-view');
+  const dashboardView = document.getElementById('dashboard-view');
+  const emailInput = document.getElementById('email-input');
+  const passwordInput = document.getElementById('password-input');
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      loginView.classList.add('hidden');
+      dashboardView.classList.remove('hidden');
+    } else {
+      loginView.classList.remove('hidden');
+      dashboardView.classList.add('hidden');
+    }
+  });
+
+  document.getElementById('btn-login').addEventListener('click', () => {
+    signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value).catch(error => alert('Erro no login: ' + error.message));
+  });
+
+  document.getElementById('btn-register').addEventListener('click', () => {
+    createUserWithEmailAndPassword(auth, emailInput.value, passwordInput.value)
+      .then(() => alert('Conta criada!'))
+      .catch(error => alert('Erro no cadastro: ' + error.message));
+  });
+
+  onValue(logsRef, (snapshot) => {
+    const table = document.getElementById('tabela-logs');
+    table.innerHTML = '<tr><th>Data/Hora</th><th>Usuário</th><th>Ação</th><th>Grupo</th></tr>';
+    const data = snapshot.val();
+    if (data) {
+      Object.keys(data).forEach(key => {
+        const log = data[key];
+        const date = new Date(log.timestamp).toLocaleString('pt-BR');
+        table.innerHTML += `<tr><td>${date}</td><td>${log.id_usuario}</td><td>${log.acao}</td><td>${log.id_grupo}</td></tr>`;
+      });
+    } else {
+      table.innerHTML += '<tr><td colspan="4">Nenhum log encontrado.</td></tr>';
+    }
+  });
+
+  document.getElementById('btn-bloquear').addEventListener('click', () => {
+    const grupoId = prompt('Digite o ID do Grupo para bloquear (ex: GR-8892):');
+    if (grupoId) {
+      const grupoRef = ref(db, 'grupos/' + grupoId);
+      update(grupoRef, { status: 'Bloqueado' }).then(() => {
+        alert('Grupo ' + grupoId + ' bloqueado com sucesso!');
+      }).catch((error) => alert('Erro ao bloquear: ' + error.message));
+    }
+  });
+
+  document.getElementById('btn-senha').addEventListener('click', () => {
+    const grupoId = prompt('Digite o ID do Grupo para alterar a senha:');
+    if (grupoId) {
+      const novaSenha = prompt('Digite a nova senha para o grupo ' + grupoId + ':');
+      if (novaSenha) {
+        const grupoRef = ref(db, 'grupos/' + grupoId);
+        update(grupoRef, { senha_hash: novaSenha }).then(() => {
+          alert('Senha do grupo ' + grupoId + ' alterada com sucesso!');
+        }).catch((error) => alert('Erro ao alterar senha: ' + error.message));
+      }
+    }
+  });
+
+  document.getElementById('btn-logout').addEventListener('click', () => {
+    signOut(auth);
+  });
+</script>
+</body>
+</html>
