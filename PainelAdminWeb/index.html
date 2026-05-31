@@ -120,6 +120,9 @@
     } else {
       table.innerHTML += '<tr><td colspan="4">Nenhum log encontrado.</td></tr>';
     }
+  }, (error) => {
+    const table = document.getElementById('tabela-logs');
+    table.innerHTML = `<tr><td colspan="4" style="color:#ff6b6b;">Erro de permissão: ${error.message}<br><b>Dica:</b> Você copiou o conteúdo de "regras_firebase.json" para a aba Regras do Realtime Database no console?</td></tr>`;
   });
 
   document.getElementById('btn-bloquear').addEventListener('click', () => {
